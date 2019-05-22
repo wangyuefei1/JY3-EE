@@ -1,10 +1,11 @@
 package com.neuedu.dao;
 
-import com.neuedu.entity.Account;
+import com.neuedu.pojo.Account;
+
+import java.util.List;
 
 public interface userdao {
-
-    void register(String user,String psw);
-    Account login(Account account);
-    void Updatepsw(Account account);
+    List<Account> getAccount();
+    void Updatamsg(Account account,String newpsw);
+    void Delmsg(int id);
 }

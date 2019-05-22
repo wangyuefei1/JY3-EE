@@ -1,93 +1,54 @@
 package com.neuedu.dao;
 
-import com.neuedu.entity.Account;
+import com.neuedu.dataSource.Druiddata;
+import com.neuedu.pojo.Account;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.sql.*;
-
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 public class userdaoimpl implements userdao {
+    private QueryRunner queryRunner;
 
-    static
+    private Druiddata druiddata = Druiddata.getDruidata();
+    public userdaoimpl()
     {
+        queryRunner = new QueryRunner();
+    }
+    @Override
+    public List<Account> getAccount() {
+        List<Account> accounts = null;
+        Connection connection = druiddata.getconnection();
+        String sql = "SELECT * FROM account";
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static final String URL ="jdbc:mysql://localhost:3306/user";
-    private  static final String USERNAME = "root";
-    private  static final  String PASSWORD = "123456";
-
-    //注册
-    @Override
-    public void register(String user, String psw)  {
-        Connection connection= null;
-        PreparedStatement ps = null;
-        try
-        {
-            String sql = "INSERT INTO account(username,password) value(?,?) ";
-             connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-             ps =  connection.prepareStatement(sql);
-            ps.setString(1,user);
-            ps.setString(2,psw);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }finally {
-            if (null != connection) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (null != ps)
-            {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-    //登录
-    @Override
-    public Account login(Account account) {
-         String sql = "SELECT username,password FROM  account  WHERE username = ? AND password = ?";
-        try
-        {
-            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            PreparedStatement ps =  connection.prepareStatement(sql);
-            ps.setString(1,account.getUsername());
-            ps.setString(2,account.getPassword());
-            ResultSet resultSet =  ps.executeQuery();
-            if (resultSet.next())
-            {
-                return  account;
-            }
+            accounts = queryRunner.query(connection, sql, new BeanListHandler<>(Account.class));
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return accounts;
     }
 
-    //修改密码
     @Override
-    public void Updatepsw(Account account) {
-        String sql = " update account set password  = ? where username = ?";
+    public void Updatamsg(Account account,String newpsw) {
+        Connection connection = druiddata.getconnection();
+        String sql = "UPDATE account set password = ? WHERE username = ? AND password = ?";
         try {
-            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1,account.getPassword());
-            preparedStatement.setString(2,account.getUsername());
-            preparedStatement.executeUpdate();
-
+            int update = queryRunner.update(connection, sql,newpsw,account.getUsername(),account.getPassword());
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void Delmsg(int id) {
+        Connection connection = druiddata.getconnection();
+        String sql = "DELETE FROM account where id = ?";
+        try {
+            int update = queryRunner.update(connection, sql,id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
